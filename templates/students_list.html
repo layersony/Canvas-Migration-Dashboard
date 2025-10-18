@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Course {{ course_id }} — Members</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        h2 { color: #333; }
+        .section { margin-bottom: 20px; }
+        .section h3 { margin-bottom: 5px; }
+        .list-box { background: #f9f9f9; padding: 10px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+<h2>Course {{ course_id }} — Members</h2>
+
+<div class="section">
+    <h3>Designer - {{ designer|length }}</h3>
+    <div class="list-box">
+        {% if designer %}
+            {{ designer|join(', ') }}
+        {% else %}
+            <i>No Designer found.</i>
+        {% endif %}
+    </div>
+</div>
+
+<div class="section">
+    <h3>Ta's - {{ tas|length }}</h3>
+    <div class="list-box">
+        {% if tas %}
+            {{ tas|join(', ') }}
+        {% else %}
+            <i>No Ta's found.</i>
+        {% endif %}
+    </div>
+</div>
+
+<div class="section">
+    <h3>Observers - {{ observers|length }}</h3>
+    <div class="list-box">
+        {% if observers %}
+            {{ observers|join(', ') }}
+        {% else %}
+            <i>No Observers found.</i>
+        {% endif %}
+    </div>
+</div>
+
+<div class="section">
+    <h3>Teachers - {{ teachers|length }}</h3>
+    <div class="list-box">
+        {% if teachers %}
+            {{ teachers|join(', ') }}
+        {% else %}
+            <i>No Teachers found.</i>
+        {% endif %}
+    </div>
+</div>
+
+<div class="section">
+    <h3>Students - {{ students|length }}</h3>
+    <div class="list-box">
+        {% if students %}
+            {{ students|join(', ') }}
+        {% else %}
+            <i>No Students found.</i>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>

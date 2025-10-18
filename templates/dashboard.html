@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Canvas Migration Dashboard</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .log { background: #f9f9f9; padding: 10px; margin-top: 10px; border-radius: 8px; }
+        .success { color: green; }
+        .error { color: red; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+        button, a.btn { background: #007bff; color: white; border: none; padding: 6px 10px; border-radius: 4px; text-decoration: none; }
+        button:hover, a.btn:hover { background: #0056b3; }
+        #fetchBtn {
+          background-color: #007bff;
+          color: #fff;
+          padding: 8px 14px;
+          border: none;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+        #fetchBtn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        .btn-loader {
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<h2>Canvas Migration Dashboard</h2>
+
+<form id="fetchCoursesForm">
+  <label>Start ID:</label>
+  <input type="number" id="start_id" name="start_id" required>
+  &nbsp;
+  <label>End ID:</label>
+  <input type="number" id="end_id" name="end_id" required>
+  &nbsp;
+  <button type="submit" id="fetchBtn">
+    <span class="btn-text">Fetch Courses</span>
+    <span class="btn-loader" style="display:none;"></span>
+  </button>
+</form>
+
+<hr>
+
+<form id="transferForm">
+  <table>
+    <thead>
+      <tr><th>Select</th><th>Course ID</th><th>Name</th><th>Code</th><th>Get Students</th></tr>
+    </thead>
+    
+    <tbody id="courseRows">
+      <!-- Courses loaded dynamically here -->
+    </tbody>
+  </table>
+  <br>
+  <button type="submit">Start Transfer</button>
+</form>
+
+<h3>Transfer Logs</h3>
+<div id="logs">
+  {% for cid, log in logs.items() %}
+    <div class="log {{ log.status }}">
+      <b>Course {{ cid }}</b> - {{ log.status }}
+      <ul>
+        {% for d in log.details %}
+          <li>{{ d }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  // Fetch courses between start_id and end_id
+  $("#fetchCoursesForm").on("submit", async (e) => {
+    e.preventDefault();
+    const start_id = $("#start_id").val();
+    const end_id = $("#end_id").val();
+
+    const btn = $("#fetchBtn");
+    const text = btn.find(".btn-text");
+    const loader = btn.find(".btn-loader");
+
+    // Show loader
+    text.text("Fetching...");
+    loader.show();
+    btn.prop("disabled", true);
+
+    try{
+      const res = await fetch(`/fetch_courses?start_id=${start_id}&end_id=${end_id}`);
+      const data = await res.json();
+
+      let rows = "";
+
+      data.forEach(c => {
+        rows += `
+          <tr>
+            <td><input type="checkbox" name="course" value="${c.id}"></td>
+            <td>${c.id}</td>
+            <td>${c.name}</td>
+            <td>${c.course_code}</td>
+            <td><a href="/fetch_students/${c.id}" target="_blank" class="btn">Fetch</a></td>
+          </tr>
+        `;
+      });
+      $("#courseRows").html(rows);
+    } catch (err) {
+      alert("Error fetching courses: " + err.message);
+    } finally {
+      // Hide loader
+      loader.hide();
+      text.text("Fetch Courses");
+      btn.prop("disabled", false);
+    }
+
+    
+  });
+
+  $("#transferForm").on("submit", async (e) => {
+    e.preventDefault();
+    const checked = [...document.querySelectorAll('input[name=course]:checked')].map(i => i.value);
+    await fetch('/transfer', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({courses: checked})
+    });
+    alert('Transfer started — refresh logs in a few moments.');
+  });
+</script>
+
+</body>
+</html>
